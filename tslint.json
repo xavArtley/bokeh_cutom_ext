@@ -1,5 +1,4 @@
 {
-  "rulesDirectory": ["node_modules/bokehjs/build/js/types/"],
   "rules": {
     "arrow-return-shorthand": true,
     "prefer-const": [true, {"destructuring": "all"}],
@@ -30,7 +29,6 @@
     "no-var-keyword": true,
     "no-string-throw": true,
     "no-invalid-template-strings": true,
-    "return-type": true,
-    "no-debugger": true
+    "return-type": true
   }
 }
