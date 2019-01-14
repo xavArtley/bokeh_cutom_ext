@@ -3,8 +3,8 @@ import { BoxSelectTool, BoxSelectToolView } from "models/tools/gestures/box_sele
 import { Rect } from "models/glyphs/rect"
 import { ColumnDataSource } from "models/sources/column_data_source"
 import { GlyphRenderer } from "models/renderers/glyph_renderer"
-import { GestureEvent } from "core/ui_events"
-
+import { GestureEvent, TapEvent, MoveEvent } from "core/ui_events"
+import { Scale } from "models/scales/scale"
 
 export interface HasRectCDS {
     glyph: Rect
@@ -14,14 +14,40 @@ export interface HasRectCDS {
 export class ParallelSelectionView extends BoxSelectToolView {
     model: ParallelSelectionTool
 
-    _pan_start(ev: GestureEvent): void {
-        console.log("_pan_start")
+    xscale: Scale
+    yscale: Scale
+
+    initialize(options: any): void {
+        super.initialize(options)
+        this.xscale = this.plot_view.frame.xscales["default"]
+        this.yscale = this.plot_view.frame.yscales["default"]
+    }    
+
+    _pan_start(ev: GestureEvent){
         super._pan_start(ev)
+        console.log("start")
     }
 
-    _pan(ev: GestureEvent): void {
-        console.log("pan")
-        super._pan(ev)
+    _tap(ev: TapEvent): void {        
+        console.log("tap")
+    }
+
+    _doubletap(ev: TapEvent): void {
+        console.log("double tap")
+    }
+    
+    _move(ev: MoveEvent): void {
+        console.log("move")
+    }
+
+    _pan_end(ev: GestureEvent): void{
+        const {sx, sy} = ev
+        const curpoint: [number, number] = [sx, sy]
+
+        const [sxlim, sylim] = this._compute_limits(curpoint)
+        
+        console.log("pan end")
+        debugger
     }
 
 }
@@ -39,5 +65,4 @@ export class ParallelSelectionTool extends BoxSelectTool {
     tool_name = "Parallel Selection"
     event_type = "pan" as "pan"
 }
-
 ParallelSelectionTool.initClass()
