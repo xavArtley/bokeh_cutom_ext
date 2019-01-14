@@ -1,5 +1,5 @@
 from bokeh.models import TickFormatter
-from bokeh.util.compiler import TypeScript
+
 
 class MyFormatter(TickFormatter):
 
