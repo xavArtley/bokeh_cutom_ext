@@ -16,7 +16,7 @@
     "baseUrl": ".",
     "types": ["node"],
     "paths": {
-      "*": ["node_modules/bokehjs/build/js/types/*"]
+      "*": ["node_modules/bokehjs/src/lib/*"]
     },
   }
 }
