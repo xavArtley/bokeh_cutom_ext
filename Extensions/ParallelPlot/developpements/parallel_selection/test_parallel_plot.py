@@ -23,8 +23,8 @@ parallel_renderer = p.multi_line(xs="xs", ys="ys", source=data_source,
 
 selection_renderer = p.rect('x', 'y', 'width', 'height', source=rect_source, alpha=0.3)
 selection_tool = ParallelSelectionTool(
-    selection_renderer=selection_renderer, parallel_renderer=parallel_renderer,
-    selection_width=0.01)
+    renderer_select=selection_renderer, renderer_data=parallel_renderer,
+    box_width=30)
 
 p.add_tools(selection_tool)
 p.toolbar.active_drag = selection_tool
