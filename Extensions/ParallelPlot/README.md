@@ -2,6 +2,10 @@
 
 Work in progress..
 
+## Current result
+
+![parallel_plot](https://user-images.githubusercontent.com/18531147/51037316-258dfb00-15b0-11e9-9cc7-265da4b66c98.gif)
+
 ## TODO
 
 ### Fist Step
