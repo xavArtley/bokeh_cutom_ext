@@ -6,6 +6,8 @@ Work in progress..
 
 ![parallel_plot](https://raw.githubusercontent.com/xavArtley/bokeh_cutom_ext/master/Extensions/ParallelPlot/parallel_animation.gif)
 
+[interactive demo](https://xavartley.github.io/bokeh/parallel_plot)
+
 ## TODO
 
 ### Fist Step
