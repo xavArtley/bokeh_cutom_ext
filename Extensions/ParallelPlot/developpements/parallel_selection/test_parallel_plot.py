@@ -9,7 +9,7 @@ npts = 100
 ndims = 10
 
 data_source = ColumnDataSource(dict(
-    xs=(1 + np.arange(ndims))[None, :].repeat(npts, axis=0).tolist(),
+    xs=np.arange(ndims)[None, :].repeat(npts, axis=0).tolist(),
     ys=np.random.rand(npts, ndims).tolist(),
 ))
 
@@ -17,7 +17,7 @@ rect_source = ColumnDataSource({
     'x': [], 'y': [], 'width': [], 'height': []
 })
 
-p = figure(x_range=(0.5, ndims+0.5), y_range=(0, 1), width=1000)
+p = figure(x_range=(-0.5, ndims-0.5), y_range=(0, 1), width=1000)
 parallel_renderer = p.multi_line(xs="xs", ys="ys", source=data_source,
                                  line_color="#8073ac", line_width=1)
 

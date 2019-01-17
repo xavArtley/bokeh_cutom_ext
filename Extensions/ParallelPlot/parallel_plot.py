@@ -1,24 +1,26 @@
+import os
 import colorcet as cc
 import numpy as np
 import pandas as pd
 
 from bokeh.plotting import figure
-from bokeh.models import (Range1d, ColumnDataSource, FactorRange, LinearAxis,
-                          LinearColorMapper, BoxSelectTool, CustomJS, MultiLine,
-                          FixedTicker, BasicTickFormatter, Rect,
-                          CustomAction)
-from bokeh.events import SelectionGeometry
+from bokeh.models import (Range1d, ColumnDataSource, LinearAxis,
+                          LinearColorMapper, CustomJS, MultiLine,
+                          FixedTicker, BasicTickFormatter,
+                          CustomAction, FuncTickFormatter)
 from bokeh.io import show
-import os
+from parallel_selection_tool import ParallelSelectionTool
+
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 
 def parallel_plot(df, color=None):
 
-    code = open(os.path.join(dir_path, 'custom_js.js')).read()
+    npts = df.shape[0]
+    ndims = len(df.columns)
 
     data_source = ColumnDataSource(dict(
-        xs=[df.columns.tolist()] * df.shape[0],
+        xs=np.arange(ndims)[None, :].repeat(npts, axis=0).tolist(),
         ys=np.array((df-df.min())/(df.max()-df.min())).tolist(),
         color=color,
     )
@@ -28,57 +30,62 @@ def parallel_plot(df, color=None):
                              low=data_source.data['color'].max(),
                              palette=cc.rainbow)
 
-    x_padding_bounds = (-0.5, len(df.columns)+0.5)  # find a way to add it
     y_padding_bounds = (-0.1, 1.1)
-    p = figure(x_range=FactorRange(factors=df.columns),
-               width=1000, tools="pan,box_zoom")
+    p = figure(x_range=(-1, ndims),
+               y_range=(0, 1),
+               width=1000,
+               tools="pan, box_zoom")
+    fixed_x_ticks = FixedTicker(
+        ticks=np.arange(ndims), minor_ticks=[])
+    formatter_x_ticks = FuncTickFormatter(
+        code="return columns[index]", args={"columns": df.columns})
+    p.xaxis.ticker = fixed_x_ticks
+    p.xaxis.formatter = formatter_x_ticks
+
     p.yaxis.visible = False
-    p.y_range.bounds = y_padding_bounds
     p.y_range.start = 0
     p.y_range.end = 1
+    p.y_range.bounds = y_padding_bounds
     p.xgrid.visible = False
     p.ygrid.visible = False
 
-    p.add_tools(BoxSelectTool())
     tickformatter = BasicTickFormatter(precision=1)
-    for col in df.columns:
+    for index, col in enumerate(df.columns):
         start = df[col].min()
         end = df[col].max()
         bound_min = start + abs(end-start) * (p.y_range.bounds[0] - p.y_range.start)
         bound_max = end + abs(end-start) * (p.y_range.bounds[1] - p.y_range.end)
-        p.extra_y_ranges.update({col: Range1d(start=bound_min, end=bound_max, bounds=(bound_min, bound_max))})
+        p.extra_y_ranges.update(
+            {col: Range1d(start=bound_min, end=bound_max, bounds=(bound_min, bound_max))})
 
         fixedticks = FixedTicker(
             ticks=np.linspace(start, end, 8), minor_ticks=[])
 
-        p.add_layout(LinearAxis(fixed_location=col, y_range_name=col,
+        p.add_layout(LinearAxis(fixed_location=index, y_range_name=col,
                                 ticker=fixedticks, formatter=tickformatter), 'right')
-    renderer = p.multi_line(xs="xs", ys="ys", source=data_source, line_color={
-                            'field': 'color', 'transform': cmap}, line_width=0.3)
+    parallel_renderer = p.multi_line(
+        xs="xs", ys="ys", source=data_source, line_color='grey', line_width=0.1, line_alpha=0.5)
     selected_lines = MultiLine(line_color={'field': 'color', 'transform': cmap}, line_width=1)
     nonselected_lines = MultiLine(line_color='grey', line_width=0.1, line_alpha=0.5)
 
-    renderer.selection_glyph = selected_lines
-    renderer.nonselection_glyph = nonselected_lines
+    parallel_renderer.selection_glyph = selected_lines
+    parallel_renderer.nonselection_glyph = nonselected_lines
     p.y_range.start = y_padding_bounds[0]
     p.y_range.end = y_padding_bounds[1]
 
-    rect_source = ColumnDataSource(data=dict(x=[], y=[], width=[], height=[]))
-
+    rect_source = ColumnDataSource({
+        'x': [], 'y': [], 'width': [], 'height': []
+    })
     # add rectange selections
-    rect = Rect(x='x',
-                y='y',
-                width='width',
-                height='height',
-                fill_alpha=0.3,
-                fill_color='#009933')
+    selection_renderer = p.rect(x='x', y='y', width='width', height='height',
+                                source=rect_source,
+                                fill_alpha=0.7, fill_color='#009933')
+    selection_tool = ParallelSelectionTool(
+        renderer_select=selection_renderer, renderer_data=parallel_renderer,
+        box_width=10)
 
-    p.add_glyph(rect_source, rect, selection_glyph=rect, nonselection_glyph=rect)
-
-    # Add Javascript callback on SelectionGeometry event
-    cb = CustomJS(args={'plot': p, 'data_source': data_source,
-                        'rect_source': rect_source}, code=code)
-    p.js_on_event(SelectionGeometry, cb)
+    p.add_tools(selection_tool)
+    p.toolbar.active_drag = selection_tool
 
     # custom resets
     reset_axes = CustomAction(icon=os.path.join(dir_path, 'Reset.png'),
@@ -91,16 +98,7 @@ def parallel_plot(df, color=None):
                                                     }
                                                 """),
                               action_tooltip='Reset Axes')
-
-    reset_selection = CustomAction(icon=os.path.join(dir_path, 'ResetSelection.png'),
-                                   action_tooltip='Reset Selections',
-                                   callback=CustomJS(args={'data_source': data_source, 'rect_source': rect_source},
-                                                     code="""
-                                                        rect_source.data = {x : [], y : [], width: [], height: []}
-                                                        data_source.selected.indices = []
-                                                     """))
     p.add_tools(reset_axes)
-    p.add_tools(reset_selection)
     return p
 
 

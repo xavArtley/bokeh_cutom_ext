@@ -10,11 +10,12 @@ Work in progress..
 
 ### Fist Step
 
-- [] Create a custom extension to remove the `CustomJs` callback on selection geometry
-- [] Add possibility to drag box already created
+- [x] Create a custom extension to remove the `CustomJs` callback on selection geometry
+- [x] Add possibility to drag box already created
 - [] Add possibility to resize box already created
-- [] Add possibility to select and remove a box
-- [] Add multiple box on one axis
+- [x] Add possibility to select and remove a box
+- [x] Add multiple box on one axis
+- [] Create a Custom x_axis ticker
 
 ### Second step
 
