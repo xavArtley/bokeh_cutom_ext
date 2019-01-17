@@ -21,7 +21,8 @@ p = figure(x_range=(0.5, ndims+0.5), y_range=(0, 1), width=1000)
 parallel_renderer = p.multi_line(xs="xs", ys="ys", source=data_source,
                                  line_color="#8073ac", line_width=1)
 
-selection_renderer = p.rect('x', 'y', 'width', 'height', source=rect_source, alpha=0.7)
+selection_renderer = p.rect('x', 'y', 'width', 'height', source=rect_source,
+                            fill_alpha=0.3, fill_color='#009933')
 selection_tool = ParallelSelectionTool(
     renderer_select=selection_renderer, renderer_data=parallel_renderer,
     box_width=10)
