@@ -4,8 +4,9 @@ import {Rect} from "models/glyphs/rect"
 import {ColumnDataSource} from "models/sources/column_data_source"
 import {GlyphRenderer} from "models/renderers/glyph_renderer"
 import {ColumnarDataSource, MultiLine, Scale} from "models"
-import {MoveEvent, GestureEvent, TapEvent} from "core/ui_events"
+import {MoveEvent, GestureEvent, TapEvent, KeyEvent} from "core/ui_events"
 import {intersection, union, transpose} from "core/util/array"
+import { Keys } from "core/dom"
 
 export interface HasRectCDS {
     glyph: Rect
@@ -277,6 +278,22 @@ export class ParallelSelectionView extends BoxSelectToolView {
             this._delete_selection_indices(this.ind_active_box)
         }
     }
+
+    _keyup(ev: KeyEvent){
+        if (ev.keyCode == Keys.Esc) {
+            const nelems = this.cds_select.get_length()
+            if(nelems != null){
+                this.cds_select.columns().forEach(key => {
+                    this.cds_select.get_array(key).splice(0, nelems)
+                })
+                this.selection_indices.splice(0,nelems)
+                this._emit_cds_changes(this.cds_select)
+                this._update_data_selection()
+            }
+            this.plot_view.request_render()
+        }
+    }
+
 
     _update_data_selection() {
         let selection_indices: number[] = []
