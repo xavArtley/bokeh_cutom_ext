@@ -4,7 +4,7 @@ Work in progress..
 
 ## Current result
 
-![parallel_plot](https://user-images.githubusercontent.com/18531147/51037316-258dfb00-15b0-11e9-9cc7-265da4b66c98.gif)
+![parallel_plot](https://raw.githubusercontent.com/xavArtley/bokeh_cutom_ext/master/Extensions/ParallelPlot/parallel_animation.gif)
 
 ## TODO
 
@@ -15,7 +15,7 @@ Work in progress..
 - [] Add possibility to resize box already created
 - [x] Add possibility to select and remove a box
 - [x] Add multiple box on one axis
-- [] Create a Custom x_axis ticker
+- [x] Create a Custom `xaxis` ticker
 
 ### Second step
 
