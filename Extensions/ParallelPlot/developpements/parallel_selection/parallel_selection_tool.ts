@@ -36,6 +36,31 @@ function index_array(array: number[], indices: number[]): number[] {
     return indices.reduce((a: number[], i) => a.concat(array[i]), [])
 }
 
+function combineByKey(key: string, array: any[]) {
+    const keys: string[] = Object.keys(array[0])
+    const combined: any[] = []
+    array.forEach((itm) => {
+        const idx = combined.map(item => item[key]).indexOf(itm[key])
+        if (idx >= 0) {
+            keys.forEach(element => {
+                if (element != key) combined[idx][element].push(itm[element])
+            })
+        } else {
+            const new_object: any = {}
+            keys.forEach(element => {
+                if (element == key) {
+                    new_object[element] = itm[element]
+                }
+                else {
+                    new_object[element] = [itm[element]]
+                }
+            })
+            combined.push(new_object)
+        }
+    })
+    return combined
+}
+
 
 export class ParallelSelectionView extends BoxSelectToolView {
     model: ParallelSelectionTool
@@ -156,7 +181,7 @@ export class ParallelSelectionView extends BoxSelectToolView {
         }
     }
 
-    _update_box_vpos(index_box: number, delta_y: number) {
+    _update_box_ypos(index_box: number, delta_y: number) {
         if (this._base_box_parameters != null) {
             const cds = this.cds_select
             const {ykey} = this._cds_select_keys
@@ -172,7 +197,7 @@ export class ParallelSelectionView extends BoxSelectToolView {
     _drag(ev: GestureEvent) {
         if (this.ind_active_box != null && this._base_point != null) {
             const delta_y = this.yscale.invert(ev.sy) - this._base_point[1]
-            this._update_box_vpos(this.ind_active_box, delta_y)
+            this._update_box_ypos(this.ind_active_box, delta_y)
         }
     }
 
@@ -255,9 +280,11 @@ export class ParallelSelectionView extends BoxSelectToolView {
 
     _update_data_selection() {
         let selection_indices: number[] = []
-        if (this.selection_indices.length > 0)
-            selection_indices = intersection(this.selection_indices[0].indices,
-                ...this.selection_indices.slice(1).map(elem => elem.indices))
+        if (this.selection_indices.length > 0) {
+            const combined_selections = combineByKey('data_idx', this.selection_indices)
+            selection_indices = intersection(union<number>(...combined_selections[0].indices),
+                ...combined_selections.slice(1).map(elem => union<number>(...elem.indices)))
+        }
         this.cds_data.selected.indices = selection_indices
         this.cds_data.change.emit()
     }
