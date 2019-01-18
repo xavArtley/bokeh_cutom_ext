@@ -22,9 +22,9 @@ value = np.sin(xx/50) * np.cos(yy/50) * 50 + 50
 
 source = ColumnDataSource(data=dict(x=xx, y=yy, z=value))
 
-scatter = Vis3d(x="x", y="y", z="z", data_source=source, width=600, height=600, style='scatter')
-surface = Vis3d(x="x", y="y", z="z", data_source=source, width=600, height=600, style='surface',
-                cameraPosition={'horizontal': -0.35, 'vertical': 0.22, 'distance': 32})
+scatter = Vis3d(x="x", y="y", z="z", data_source=source, width=400, height=400, style='scatter')
+surface = Vis3d(x="x", y="y", z="z", data_source=source, width=400, height=400, style='surface',
+                cameraPosition={'horizontal': -0.10, 'vertical': 0.22, 'distance': 3})
 
 
 show(row([scatter, surface]))
