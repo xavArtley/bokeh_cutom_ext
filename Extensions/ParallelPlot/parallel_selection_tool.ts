@@ -114,7 +114,6 @@ export class ParallelSelectionView extends BoxSelectToolView {
 
         this.connect(this.plot_model.frame.x_ranges[this.model.renderer_select.x_range_name].change,
             () => this._resize_boxes_on_zoom())
-
         this.connect(this.cds_select.change, () => this._update_data_selection())
     }
 
@@ -281,14 +280,14 @@ export class ParallelSelectionView extends BoxSelectToolView {
         }
     }
 
-    _keyup(ev: KeyEvent){
+    _keyup(ev: KeyEvent) {
         if (ev.keyCode == Keys.Esc) {
             const nelems = this.cds_select.get_length()
-            if(nelems != null){
+            if (nelems != null) {
                 this.cds_select.columns().forEach(key => {
                     this.cds_select.get_array(key).splice(0, nelems)
                 })
-                this.selection_indices.splice(0,nelems)
+                this.selection_indices.splice(0, nelems)
                 this._emit_cds_changes(this.cds_select)
                 this._update_data_selection()
             }

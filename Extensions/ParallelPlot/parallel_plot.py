@@ -34,7 +34,7 @@ def parallel_plot(df, color=None, palette=None):
     p = figure(x_range=(-1, ndims),
                y_range=(0, 1),
                width=1000,
-               tools="pan, box_zoom",output_backend="webgl")
+               tools="pan, box_zoom")
     
     # Create x axis ticks from columns contained in dataframe
     fixed_x_ticks = FixedTicker(
