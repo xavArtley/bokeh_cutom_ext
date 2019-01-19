@@ -6,7 +6,7 @@ import {GlyphRenderer} from "models/renderers/glyph_renderer"
 import {ColumnarDataSource, MultiLine, Scale} from "models"
 import {MoveEvent, GestureEvent, TapEvent, KeyEvent} from "core/ui_events"
 import {intersection, union, transpose} from "core/util/array"
-import { Keys } from "core/dom"
+import {Keys} from "core/dom"
 
 export interface HasRectCDS {
     glyph: Rect
@@ -114,6 +114,8 @@ export class ParallelSelectionView extends BoxSelectToolView {
 
         this.connect(this.plot_model.frame.x_ranges[this.model.renderer_select.x_range_name].change,
             () => this._resize_boxes_on_zoom())
+
+        this.connect(this.cds_select.change, () => this._update_data_selection())
     }
 
     get _box_width(): number {
@@ -294,7 +296,6 @@ export class ParallelSelectionView extends BoxSelectToolView {
         }
     }
 
-
     _update_data_selection() {
         let selection_indices: number[] = []
         if (this.selection_indices.length > 0) {
@@ -313,17 +314,15 @@ export class ParallelSelectionView extends BoxSelectToolView {
                 indices: find_indices_in(this.ydataT[index], [y0, y1]),
             }
         }))
-        this._update_data_selection()
     }
 
     _update_selection_indices(index: number, [y0, y1]: [number, number]) {
         this.selection_indices[index].indices = find_indices_in(this.ydataT[this.selection_indices[index].data_idx], [y0, y1])
-        this._update_data_selection()
     }
 
     _delete_selection_indices(index: number) {
         this.selection_indices.splice(index, 1)
-        this._update_data_selection()
+        this._emit_cds_changes(this.cds_select)
     }
 
     _make_box_select(xs: number[], [y0, y1]: [number, number]): void {
@@ -344,19 +343,14 @@ export class ParallelSelectionView extends BoxSelectToolView {
     }
 
     _do_select([sx0, sx1]: [number, number], [sy0, sy1]: [number, number], _final: boolean = true, _append: boolean = true): void {
-
         // Get selection bbox in the data space
         const [x0, x1] = this.xscale.r_invert(sx0, sx1)
         const [y0, y1] = this.yscale.r_invert(sy0, sy1)
-
         const x_indices = find_indices_in(this.xdata, [x0, x1])
-
         const xs = index_array(this.xdata, x_indices)
-
         this._make_selection_indices(x_indices, [y0, y1])
         this._make_box_select(xs, [y0, y1])
     }
-
 }
 
 export class ParallelSelectionTool extends BoxSelectTool {
