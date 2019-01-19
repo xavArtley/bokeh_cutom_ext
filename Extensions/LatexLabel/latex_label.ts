@@ -44,7 +44,10 @@ export class LatexLabelView extends LabelView {
 }
 
 export class LatexLabel extends Label {
-  type = 'LatexLabel'
-  default_view = LatexLabelView
-}
 
+  static initClass() {
+    this.prototype.type = 'LatexLabel'
+    this.prototype.default_view = LatexLabelView
+  }
+}
+LatexLabel.initClass()

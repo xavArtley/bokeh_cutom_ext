@@ -12,22 +12,24 @@
 // These "require" lines are similar to python "import" statements
 import * as p from "core/properties"
 import {LayoutDOM, LayoutDOMView} from "models/layouts/layout_dom"
+import {ColumnDataSource} from 'models/sources/column_data_source'
 
+type TypePlot = "scatter" | "surface"
 
-const OPTIONS = {
-    showPerspective: Boolean,
-    showGrid: Boolean,
-    keepAspectRatio: Boolean,
-    verticalRatio: Number,
-    legendLabel: String,
+type options = {
+    showPerspective: boolean,
+    showGrid: boolean,
+    keepAspectRatio: boolean,
+    verticalRatio: number,
+    legendLabel: string,
     cameraPosition: {
-        horizontal: Number,
-        vertical: Number,
-        distance: Number,
+        horizontal: number,
+        vertical: number,
+        distance: number,
     },
-    style: String,
-    width: String,
-    height: String,
+    style: TypePlot,
+    width: string,
+    height: string,
 }
 
 export class Vis3dView extends LayoutDOMView {
@@ -51,22 +53,21 @@ export class Vis3dView extends LayoutDOMView {
         script.src = url
         script.async = false
         script.onreadystatechange = (script.onload = () => this._init())
-        document.querySelector("head").appendChild(script)
+        document.querySelector("head")!.appendChild(script)
     }
 
     _init() {
-        OPTIONS.style = this.model.style
-        OPTIONS.width = String(this.model.width + 'px')
-        OPTIONS.height = this.model.height + 'px'
-        OPTIONS.showGrid = this.model.showGrid
-        OPTIONS.keepAspectRatio = this.model.keepAspectRatio
-        OPTIONS.verticalRatio = this.model.verticalRatio
-        OPTIONS.legendLabel = this.model.legendLabel
-        OPTIONS.showPerspective = this.model.showPerspective
-        for (let key in this.model.cameraPosition) {
-            OPTIONS.cameraPosition[key] = this.model.cameraPosition[key]
+        const OPTIONS: options = {
+            style: this.model.style,
+            width: this.model.width + 'px',
+            height: this.model.height + 'px',
+            showGrid: this.model.showGrid,
+            keepAspectRatio: this.model.keepAspectRatio,
+            verticalRatio: this.model.verticalRatio,
+            legendLabel: this.model.legendLabel,
+            showPerspective: this.model.showPerspective,
+            cameraPosition: this.model.cameraPosition,
         }
-
         this._graph = new vis.Graph3d(this.el, this.get_data(), OPTIONS)
 
         // Set a listener so that when the Bokeh data source has a change
@@ -79,11 +80,11 @@ export class Vis3dView extends LayoutDOMView {
     get_data() {
         const data = new vis.DataSet()
         const source = this.model.data_source
-        for (let i = 0; i < source.get_length(); i++) {
+        for (let i = 0; i < source.get_length()!; i++) {
             data.add({
-                x: source.get_column(this.model.x)[i],
-                y: source.get_column(this.model.y)[i],
-                z: source.get_column(this.model.z)[i],
+                x: source.get_column(this.model.x)![i],
+                y: source.get_column(this.model.y)![i],
+                z: source.get_column(this.model.z)![i],
             })
         }
         return data
@@ -102,6 +103,22 @@ export class Vis3dView extends LayoutDOMView {
 // an element that can position itself in the DOM according to a Bokeh layout,
 // we subclass from ``LayoutDOM``
 export class Vis3d extends LayoutDOM {
+    showPerspective: boolean
+    showGrid: boolean
+    keepAspectRatio: boolean
+    verticalRatio: number
+    legendLabel: string
+    cameraPosition: {
+        horizontal: number,
+        vertical: number,
+        distance: number,
+    }
+    x: string
+    y: string
+    z: string
+    style: TypePlot
+    data_source: ColumnDataSource
+
 
     static initClass(): void {
 
@@ -131,7 +148,7 @@ export class Vis3d extends LayoutDOM {
             y: [p.String, 'y'],
             z: [p.String, 'z'],
             style: [p.String, "surface"],
-            data_source: [p.Instance],
+            data_source: [p.Any],
         })
     }
 }
