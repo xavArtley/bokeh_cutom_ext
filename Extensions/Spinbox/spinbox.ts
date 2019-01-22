@@ -3,20 +3,7 @@ import {empty, input, label} from 'core/dom'
 import {InputWidget, InputWidgetView} from 'models/widgets/input_widget'
 
 
-export class BaseSpinBoxView extends InputWidgetView {
-    initialize(options: any): void {
-        super.initialize(options)
-        this.render()
-    }
-
-    connect_signals(): void {
-        super.connect_signals()
-        this.connect(this.model.change, () => this.render())
-    }
-
-}
-
-export class SpinBoxView extends BaseSpinBoxView {
+export class SpinBoxView extends InputWidgetView {
     model: SpinBox
 
     protected inputEl: HTMLInputElement
