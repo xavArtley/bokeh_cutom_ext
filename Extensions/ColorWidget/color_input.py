@@ -6,7 +6,7 @@ from bokeh.colors import named
 class ColorInput(InputWidget):
 
     __implementation__ = 'color_input.ts'
-    color = Color(default="#000000", help="""
+    color = Color(help="""
     Color only named and string of type hexadecimal values are valid
     """)
 
