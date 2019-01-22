@@ -3,7 +3,11 @@ import {empty, input, label} from 'core/dom'
 import {InputWidget, InputWidgetView} from 'models/widgets/input_widget'
 
 
-export class BaseSpinBoxView extends InputWidgetView {
+export class SpinBoxView extends InputWidgetView {
+    model: SpinBox
+
+    protected inputEl: HTMLInputElement
+
     initialize(options: any): void {
         super.initialize(options)
         this.render()
@@ -14,12 +18,9 @@ export class BaseSpinBoxView extends InputWidgetView {
         this.connect(this.model.change, () => this.render())
     }
 
-}
-
-export class SpinBoxView extends BaseSpinBoxView {
-    model: SpinBox
-
-    protected inputEl: HTMLInputElement
+    css_classes(): string[] {
+        return super.css_classes().concat("bk-widget-form-group")
+    }
 
     render(): void {
         super.render()
@@ -29,7 +30,6 @@ export class SpinBoxView extends BaseSpinBoxView {
         const labelEl = label({for: this.model.id}, this.model.title)
         this.el.appendChild(labelEl)
 
-        debugger
         this.inputEl = input({
             class: "bk-widget-form-input",
             id: this.model.id,
@@ -57,6 +57,9 @@ export class SpinBoxView extends BaseSpinBoxView {
     change_input(): void {
         const new_value = Number(this.inputEl.value)
         this.model.value = Math.min(Math.max(new_value, this.model.low), this.model.high)
+        if (this.model.value != new_value) {
+            this.model.change.emit()
+        }
         super.change_input()
     }
 }
@@ -73,8 +76,8 @@ export class SpinBox extends InputWidget {
 
         this.define({
             value: [p.Number, 0],
-            low: [p.Number, null],
-            high: [p.Number, null],
+            low: [p.Number],
+            high: [p.Number],
             step: [p.Number, 1],
         })
     }
