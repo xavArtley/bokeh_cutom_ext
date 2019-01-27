@@ -1,0 +1,39 @@
+.bk-color-picker-wg {
+    border: 2px solid #aaaaaa;
+    border-radius: 10px;
+}
+
+.bk-hue-sld{
+    position: absolute;
+    width: 20px;
+    height: 150px;
+    border: 1px solid #aaa;
+    cursor: n-resize;
+}
+
+.bk-hue-sld-arrs{
+    position: absolute;
+    left: -8px;
+    width: 36px;
+    height: 7px;
+    top: -7px;
+}
+
+.bk-hue-sld-larr{
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-left: 7px solid #858585;
+}
+
+.bk-hue-sld-rarr{
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-right: 7px solid #858585;
+    right: 0;
+}

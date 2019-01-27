@@ -1,7 +1,9 @@
 from bokeh.io import show
 from color_pick import ColorPick
+from bokeh.layouts import column, widgetbox
 
-w = ColorPick(color="red", width=250, height=50)
+w1 = ColorPick(color="red", width=50, height=20)
+w2 = ColorPick(color="red", width=50, height=20)
 
 
-show(w)
+show(column(widgetbox(w1), widgetbox(w2)))

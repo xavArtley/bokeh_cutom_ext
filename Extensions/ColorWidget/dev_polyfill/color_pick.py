@@ -8,7 +8,7 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 
 class ColorPick(Widget):
 
-    __css__ = os.path.join(dir_path, 'colorpicker.css')
+    __css__ = os.path.join(dir_path, 'color_pick.css')
     __implementation__ = 'color_pick.ts'
     color = Color(help="""
     Color only named and string of type hexadecimal values are valid
