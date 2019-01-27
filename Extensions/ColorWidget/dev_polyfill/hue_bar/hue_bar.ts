@@ -1,7 +1,6 @@
 import * as p from "core/properties"
 import {empty, div} from 'core/dom'
-import {WidgetView} from 'models/widgets/widget'
-import {Widget} from 'models/widgets/widget'
+import {Widget, WidgetView} from 'models/widgets/widget'
 import {Color} from 'core/types'
 
 
