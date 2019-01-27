@@ -42,7 +42,6 @@ export class SpinBoxView extends InputWidgetView {
             type: "number",
         })
 
-        this.inputEl.append(this.model.value.toString())
         this.inputEl.addEventListener("change", () => this.change_input())
         this.el.appendChild(this.inputEl)
 
