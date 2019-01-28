@@ -1,55 +1,107 @@
 .bk-color-picker-wg {
-    border: 2px solid #aaaaaa;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+/*    border: 2px solid #aaaaaa;
+    background:#DDD;
     border-radius: 10px;
+    box-shadow: 0 0 5px -1px rgba(0,0,0,0.2);*/
+    cursor:pointer;
+}
+
+.bk-color-picker-wg span{
+    display: block;
+    width: 100%;
+    min-height: 5px;
+    border: 1px solid black;
+    border-radius: 4px;
+    margin: 4px;
 }
 
 .bk-color-picker-ctn{
     border: 2px solid black;
     border-radius: 10px;
     background-color: gainsboro;
-    display: block;
+    display: flex;
     position: relative;
-    width: 250px;
-    height: 200px;
+    width: 290px;
+    padding: 7px;
 }
 
-.bk-gradient-pnl{
-    position: absolute;
-}
-
-.bk-hue-sld{
-    position: absolute;
-    top: 10px;
-    left: 160px;
-    width: 20px;
+.bk-gradient-pnl{/*used for saturation and Lightness values*/
+    display: block;
+    width: 150px;
     height: 150px;
-    border: 1px solid #aaa;
+    border: 1px solid black;
+    display: block;
+    background: red;
+    cursor: crosshair;
+}
+
+.bk-gradient-pnl-overlay-1{
+    height: 151px;
+    background: linear-gradient(to right, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
+    border-bottom: 1px solid black;
+}
+
+.bk-gradient-pnl-overlay-2{
+    height: 151px;
+    background: linear-gradient(to bottom, rgba(0,0,0,0) 0%,rgba(0,0,0,1) 100%);
+}
+
+.bk-gradient-pnl-cursor-outer{
+	background:none;
+	position: absolute;
+	width: 11px;
+	height: 11px;
+	margin: 100px 0 0 100px;
+	border: 2px solid black;
+    border-radius: 50%;
+}
+
+.bk-gradient-pnl-cursor-inner{
+	position: absolute;
+	width: 9px;
+	height: 9px;
+	border: 1px solid white;
+    border-radius: 50%;
+}
+
+.bk-hue-sld-ctn{
+    padding-left: 2px;
+    padding-right: 2px;
+    display: flex;
+    width: 36px;
+    height: 150px;
     cursor: n-resize;
 }
 
-.bk-hue-sld-arrs{
-    position: absolute;
-    left: -8px;
-    width: 36px;
-    height: 7px;
-    margin: -7px 0 0 0;
+.bk-hue-sld-bar{
+    width: 20px;
+    height: 100%;
+    border: 1px solid #aaa;
 }
 
 .bk-hue-sld-larr{
-    position: absolute;
     width: 0;
     height: 0;
     border-top: 6px solid transparent;
     border-bottom: 6px solid transparent;
     border-left: 7px solid #858585;
+    margin-top: -5px
 }
 
 .bk-hue-sld-rarr{
-    position: absolute;
     width: 0;
     height: 0;
     border-top: 6px solid transparent;
     border-bottom: 6px solid transparent;
     border-right: 7px solid #858585;
-    right: 0;
+    margin-top: -5px
+}
+
+.bk-clr-spin-ctn{
+    width: 100px;
+    border: 1px solid #aaa;
 }
