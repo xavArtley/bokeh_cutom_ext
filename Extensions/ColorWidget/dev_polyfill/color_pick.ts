@@ -8,6 +8,7 @@ export class ColorPickView extends WidgetView {
     model: ColorPick
 
     protected colorPickerEl: HTMLDivElement
+    protected containerSelector: HTMLDivElement
     protected hue_slider: HueSlider
 
     initialize(options: any) {
@@ -19,9 +20,15 @@ export class ColorPickView extends WidgetView {
         })
         this.colorPickerEl.style.height = this.model.height + 'px'
         this.colorPickerEl.style.width = this.model.width + 'px'
+        this.containerSelector = div({
+            class: "bk-color-picker-ctn",
+        })
+        this.containerSelector.style.top = this.model.height + 'px'
+        this.containerSelector.style.visibility = "hidden"
         this.hue_slider = new HueSlider()
-        this.hue_slider.hueSliderEl.style.visibility = "hidden"
-        this.colorPickerEl.appendChild(this.hue_slider.hueSliderEl)
+        this.containerSelector.appendChild(this.hue_slider.hueSliderEl)
+        this.colorPickerEl.appendChild(this.containerSelector)
+
         this.render()
     }
 
@@ -43,7 +50,7 @@ export class ColorPickView extends WidgetView {
     _process_show_picker() {
         console.log("show picker")
         this.colorPickerEl.removeEventListener("click", this._show_picker)
-        this.hue_slider.hueSliderEl.style.visibility = "visible"
+        this.containerSelector.style.visibility = "visible"
         document.addEventListener('mousedown', this._hide_picker)
     }
 
@@ -51,7 +58,7 @@ export class ColorPickView extends WidgetView {
         console.log("hide picker")
         ev.stopPropagation()
         ev.preventDefault()
-        this.hue_slider.hueSliderEl.style.visibility = "hidden"
+        this.containerSelector.style.visibility = "hidden"
         document.removeEventListener('mousedown', this._hide_picker)
         this.colorPickerEl.addEventListener("click", this._show_picker)
     }
@@ -110,7 +117,7 @@ export class HueSlider {
         const cursor_height = this.cursor.getBoundingClientRect().height
         const corrected_pos = pageY - this.hueSliderEl.getBoundingClientRect().top
         const bound_pos = Math.max(Math.min(corrected_pos, slider_height), 0)
-        this.cursor.style.top = Math.round(bound_pos - cursor_height).toString() + 'px'
+        this.cursor.style.marginTop = Math.round(bound_pos - cursor_height).toString() + 'px'
     }
 
     _process_drag_move(ev: MouseEvent): void {

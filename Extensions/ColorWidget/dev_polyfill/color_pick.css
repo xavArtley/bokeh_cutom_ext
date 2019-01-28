@@ -3,8 +3,24 @@
     border-radius: 10px;
 }
 
+.bk-color-picker-ctn{
+    border: 2px solid black;
+    border-radius: 10px;
+    background-color: gainsboro;
+    display: block;
+    position: relative;
+    width: 250px;
+    height: 200px;
+}
+
+.bk-gradient-pnl{
+    position: absolute;
+}
+
 .bk-hue-sld{
     position: absolute;
+    top: 10px;
+    left: 160px;
     width: 20px;
     height: 150px;
     border: 1px solid #aaa;
@@ -16,7 +32,7 @@
     left: -8px;
     width: 36px;
     height: 7px;
-    top: -7px;
+    margin: -7px 0 0 0;
 }
 
 .bk-hue-sld-larr{
