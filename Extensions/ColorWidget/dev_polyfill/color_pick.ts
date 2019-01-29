@@ -49,12 +49,10 @@ export class ColorPickView extends WidgetView {
         this.containerSelectorEl.appendChild(this.gradientPanelView.gradienPanelEl)
         this.containerSelectorEl.appendChild(div({style: "width:7px"}))
         this.containerSelectorEl.appendChild(this.hueSliderView.hueSliderEl)
-        this.model.color = hslToHex(hexToHsl(this.model.color))
         //show the picker on button click
         this.colorPickerEl.addEventListener("click", () => this._show_picker())
         //hide the picker
         document.addEventListener("mousedown", (ev) => this._hide_picker(ev))
-        
         //events on models change
         this.connect(this.hueSliderView.model.change, () => {
             this.gradientPanelView.model.hue = this.hueSliderView.model.hue
@@ -79,6 +77,13 @@ export class ColorPickView extends WidgetView {
         this.update_span_color()
     }
 
+    _set_hsl(hsl: Hsl) {
+        const {h, s, l} = hsl
+        this.gradientPanelView.model.setv({saturation: s, lightness: l}, {silent: true})
+        this.hueSliderView.model.setv({hue: h})
+        this.gradientPanelView.model.change.emit()
+    }
+
     update_span_color() {
         this.colorSpanEl.style.backgroundColor = this.model.color
     }
@@ -93,10 +98,7 @@ export class ColorPickView extends WidgetView {
 
     _show_picker() {
         this.containerSelectorEl.style.visibility = "visible"
-        //init values of models based on the current colorPicker color
-        const {h, s, l} = hexToHsl(this.model.color)
-        this.gradientPanelView.model.setv({saturation: s, lightness: l})
-        this.hueSliderView.model.setv({hue: h})
+        this._set_hsl(hexToHsl(this.model.color))
     }
 
 }
@@ -133,6 +135,11 @@ class GradientPanelView extends Signalable(){
         this.gradienPanelEl.appendChild(overlay_1)
         this.model = new GradienPanel()
         this.gradienPanelEl.addEventListener("mousedown", (ev) => this._drag_start(ev))
+        this.connect(this.model.change, () => {
+            this._update_background()
+            this._update_pos_x()
+            this._update_pos_y()
+        })
         this.connect(this.model.properties.hue.change, () => this._update_background())
         this.connect(this.model.properties.saturation.change, () => this._update_pos_x())
         this.connect(this.model.properties.lightness.change, () => this._update_pos_y())
@@ -496,4 +503,4 @@ export type Rgb = {
   
   export function hslToHex(hsl: Hsl): string {
     return rgbToHex(hslToRgb(hsl))
-  }
+}

@@ -3,10 +3,6 @@
     align-items: center;
     justify-content: center;
     padding: 0;
-/*    border: 2px solid #aaaaaa;
-    background:#DDD;
-    border-radius: 10px;
-    box-shadow: 0 0 5px -1px rgba(0,0,0,0.2);*/
     cursor:pointer;
 }
 
@@ -25,7 +21,7 @@
     background-color: gainsboro;
     display: flex;
     position: relative;
-    width: fit-content;
+    width: 200px;
     padding: 9px;
 }
 
