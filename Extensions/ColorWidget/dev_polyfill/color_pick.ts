@@ -2,6 +2,7 @@ import * as p from "core/properties"
 import {empty, div, span} from 'core/dom'
 import {Color} from 'core/types'
 import {WidgetView, Widget} from "models/widgets/widget"
+import {Signalable} from "core/signaling"
 
 
 function isDescendant(parent: HTMLElement, child: EventTarget | null) {
@@ -46,50 +47,40 @@ export class ColorPickView extends WidgetView {
         this.gradientPanelView = new GradientPanelView()
         this.hueSliderView = new HueSliderView()
         this.containerSelectorEl.appendChild(this.gradientPanelView.gradienPanelEl)
+        this.containerSelectorEl.appendChild(div({style: "width:7px"}))
         this.containerSelectorEl.appendChild(this.hueSliderView.hueSliderEl)
-
-        //show and hide the picker
+        this.model.color = hslToHex(hexToHsl(this.model.color))
+        //show the picker on button click
         this.colorPickerEl.addEventListener("click", () => this._show_picker())
+        //hide the picker
         document.addEventListener("mousedown", (ev) => this._hide_picker(ev))
         
         //events on models change
-        this.connect(this.gradientPanelView.model.change, () => this.sl_change())
-        this.connect(this.hueSliderView.model.change, () => this.h_change())
+        this.connect(this.hueSliderView.model.change, () => {
+            this.gradientPanelView.model.hue = this.hueSliderView.model.hue
+        })
+        this.connect(this.gradientPanelView.model.change, () => {
+            this.model.color = hslToHex({
+                h: this.gradientPanelView.model.hue,
+                s: this.gradientPanelView.model.saturation,
+                l: this.gradientPanelView.model.lightness,
+            })
+        })
+        this.connect(this.model.change, () => this.update_span_color())
         this.render()
     }
 
     render(): void {
         super.render()
         empty(this.el)
-        this.update_span_color()
         this.containerSelectorEl.style.visibility = "hidden"
         this.el.appendChild(this.colorPickerEl)
         this.el.appendChild(this.containerSelectorEl)
+        this.update_span_color()
     }
 
     update_span_color() {
-        this.colorSpanEl.style.backgroundColor = hslToHex({
-            h: this.hueSliderView.model.hue,
-            s: this.gradientPanelView.model.saturation,
-            l: this.gradientPanelView.model.lightness,
-        })
-    }
-
-    update_gradient_background() {
-        this.gradientPanelView.gradienPanelEl.style.backgroundColor = hslToHex({
-            h: this.hueSliderView.model.hue,
-            s: 100,
-            l: 100,
-        })
-    }
-
-    h_change() {
-        this.update_span_color()
-        this.update_gradient_background()
-    }
-
-    sl_change() {
-        this.update_span_color()
+        this.colorSpanEl.style.backgroundColor = this.model.color
     }
 
     _hide_picker(ev: MouseEvent) {
@@ -102,17 +93,36 @@ export class ColorPickView extends WidgetView {
 
     _show_picker() {
         this.containerSelectorEl.style.visibility = "visible"
+        //init values of models based on the current colorPicker color
+        const {h, s, l} = hexToHsl(this.model.color)
+        this.gradientPanelView.model.setv({saturation: s, lightness: l})
+        this.hueSliderView.model.setv({hue: h})
     }
 
 }
 
+export class ColorPick extends Widget {
+    color: Color
 
-export class GradientPanelView{
+    static initClass(): void {
+        this.prototype.type = "ColorPick"
+        this.prototype.default_view = ColorPickView
+
+        this.define({
+            color: [p.Color, "#ff0000"], //red => h,s,l = 0, 100%, 100%
+        })
+    }
+}
+ColorPick.initClass()
+
+
+class GradientPanelView extends Signalable(){
     gradienPanelEl: HTMLDivElement
     cursorEl: HTMLDivElement
     model: GradienPanel
 
     constructor() {
+        super()
         this.gradienPanelEl = div({ class: "bk-gradient-pnl"})
         const overlay_1 = div({class: "bk-gradient-pnl-overlay-1"})
         const overlay_2 = div({class: "bk-gradient-pnl-overlay-2"})
@@ -123,6 +133,68 @@ export class GradientPanelView{
         this.gradienPanelEl.appendChild(overlay_1)
         this.model = new GradienPanel()
         this.gradienPanelEl.addEventListener("mousedown", (ev) => this._drag_start(ev))
+        this.connect(this.model.properties.hue.change, () => this._update_background())
+        this.connect(this.model.properties.saturation.change, () => this._update_pos_x())
+        this.connect(this.model.properties.lightness.change, () => this._update_pos_y())
+    }
+
+    _update_cursor_position(pageX: number, pageY: number): void {
+        const {
+            left: pn_left,
+            top: pn_top,
+        } = this.gradienPanelEl.getBoundingClientRect()
+        const pos_x = pageX - pn_left
+        const pos_y = pageY - pn_top
+        this._set_pos_x(pos_x)
+        this._set_pos_y(pos_y)
+    }
+
+    _update_background() {
+        this._hue_to_background(this.model.hue)
+    }
+
+    _update_pos_x() {
+        this._set_pos_x(this._sat_to_pos_x(this.model.saturation))
+    }
+
+    _update_pos_y() {
+        this._set_pos_y(this._light_to_pos_y(this.model.lightness))
+    }
+
+    _set_pos_x(pos_x: number) {
+        const cursor_diameter = this.cursorEl.getBoundingClientRect().width
+        const {width: pn_width} = this.gradienPanelEl.getBoundingClientRect()
+        const bound_pos_x = Math.max(Math.min(pos_x, pn_width-1), 1)
+        const cursor_margin_left = Math.round(bound_pos_x - cursor_diameter / 2 - 1).toString() + 'px'
+        this.cursorEl.style.marginLeft = cursor_margin_left
+        this.model.saturation = 100 * bound_pos_x / pn_width
+    }
+
+    _set_pos_y(pos_y: number) {
+        const cursor_diameter = this.cursorEl.getBoundingClientRect().height
+        const {height: pn_height} = this.gradienPanelEl.getBoundingClientRect()
+        const bound_pos_y = Math.max(Math.min(pos_y, pn_height-1), 1)
+        const cursor_margin_top = Math.round(bound_pos_y - cursor_diameter / 2 - 1).toString() + 'px'
+        this.cursorEl.style.marginTop = cursor_margin_top
+        this.model.lightness = 100 * (pn_height - bound_pos_y) / pn_height
+    }
+
+    _hue_to_background(hue: number) {
+        this.gradienPanelEl.style.backgroundColor = hslToHex({
+            h: hue,
+            s: 100,
+            l: 100,
+        })
+    }
+
+    _sat_to_pos_x(s: number): number {
+        const {width: pn_width} = this.gradienPanelEl.getBoundingClientRect()
+        return s * pn_width / 100
+    }
+
+    _light_to_pos_y(l: number): number {
+        const {height: pn_height} = this.gradienPanelEl.getBoundingClientRect()
+        return pn_height - l * pn_height / 100
     }
 
     _drag_start = (ev: MouseEvent) => {
@@ -130,33 +202,6 @@ export class GradientPanelView{
         this._update_cursor_position(ev.pageX, ev.pageY)
         document.addEventListener("mouseup", this._drag_stop)
         document.addEventListener("mousemove", this._drag_move)
-    }
-
-    _update_cursor_position(pageX: number, pageY: number): void {
-        const {
-            left: pn_left,
-            top: pn_top,
-            width: pn_width,
-            height: pn_height,
-        } = this.gradienPanelEl.getBoundingClientRect()
-        const cursor_diameter = this.cursorEl.getBoundingClientRect().height
-        const pn_pos_x = pageX - pn_left
-        const pn_pos_y = pageY - pn_top
-        const bound_pos_x = Math.max(Math.min(pn_pos_x, pn_width-1), 1)
-        const bound_pos_y = Math.max(Math.min(pn_pos_y, pn_height-1), 1)
-        const cursor_margin_left = Math.round(bound_pos_x - cursor_diameter / 2 - 1).toString() + 'px'
-        const cursor_margin_top = Math.round(bound_pos_y - cursor_diameter / 2 - 1).toString() + 'px'
-        this.cursorEl.style.marginLeft = cursor_margin_left
-        this.cursorEl.style.marginTop = cursor_margin_top
-        this._pos_to_sat_light(bound_pos_x, bound_pos_y)
-    }
-
-    _pos_to_sat_light(pos_x: number, pos_y: number) {
-        const {width, height} = this.gradienPanelEl.getBoundingClientRect()
-        this.model.setv({
-            saturation: 100 * pos_x / width,
-            lightness: 100 * (height - pos_y) / height,
-        })
     }
 
     _process_drag_move(ev: MouseEvent): void {
@@ -176,18 +221,37 @@ export class GradientPanelView{
     _drag_stop = (event: MouseEvent) => {
         this._process_drag_stop(event)
     }
-
-
 }
 
+namespace GradienPanel {
+    export interface Attrs extends Widget.Attrs {
+        hue: number
+        saturation: number
+        lightness: number
+    }
+
+    export interface Props extends Widget.Props {
+        hue: p.Property<number>
+        saturation: p.Property<number>
+        lightness: p.Property<number>
+    }
+}
+  
+interface GradienPanel extends GradienPanel.Attrs {}
+
 class GradienPanel extends Widget {
-    saturation: number
-    lightness: number
+
+    properties: GradienPanel.Props
+
+    constructor(attrs?: Partial<GradienPanel.Attrs>) {
+        super(attrs)
+    }
 
     static initClass(): void {
         this.prototype.type = "GradienPanel"
     
         this.define({
+            hue: [p.Number, 0],
             saturation: [p.Number, 100],
             lightness: [p.Number, 100],
         })
@@ -195,9 +259,9 @@ class GradienPanel extends Widget {
 }
 GradienPanel.initClass()
 
-export class HueSliderView {
+class HueSliderView extends Signalable(){
     hueSliderEl: HTMLDivElement
-    protected cursor: {
+    protected cursorEl: {
         left: HTMLDivElement,
         right: HTMLDivElement,
     }
@@ -205,21 +269,26 @@ export class HueSliderView {
     model: HueSlider
 
     constructor() {
+        super()
         this.hueSliderEl = div({
             class: "bk-hue-sld-ctn",
         })
         this.bar = div({class: "bk-hue-sld-bar"})
-        this.cursor = {
+        this.cursorEl = {
             left: div({class: "bk-hue-sld-larr"}),
             right: div({class: "bk-hue-sld-rarr"}),
         }
-        this.hueSliderEl.appendChild(this.cursor.left)
+        this.hueSliderEl.appendChild(this.cursorEl.left)
         this.hueSliderEl.appendChild(this.bar)
-        this.hueSliderEl.appendChild(this.cursor.right)
+        this.hueSliderEl.appendChild(this.cursorEl.right)
         this.model = new HueSlider()
         this._paint()
-        this._set_cursor_pos(this._hue_to_pos(this.model.hue))
         this.hueSliderEl.addEventListener("mousedown", (ev) => this._drag_start(ev))
+        this.connect(this.model.properties.hue.change, () => this._change_hue())
+    }
+
+    _change_hue() {
+        this._set_cursor_pos(this._hue_to_pos(this.model.hue))
     }
 
     _paint() {
@@ -238,28 +307,27 @@ export class HueSliderView {
     }
 
     _set_cursor_pos(pos: number) {
-        const cursor_height = this.cursor.left.getBoundingClientRect().height
+        const cursor_height = this.cursorEl.left.getBoundingClientRect().height
         const cursor_margin = Math.round(pos - cursor_height/2 + 1).toString() + 'px'
-        this.cursor.left.style.marginTop = cursor_margin
-        this.cursor.right.style.marginTop = cursor_margin
+        this.cursorEl.left.style.marginTop = cursor_margin
+        this.cursorEl.right.style.marginTop = cursor_margin
     }
 
     _update_cursor_position(pageY: number): void {
         const slider_height = this.hueSliderEl.getBoundingClientRect().height
         const corrected_pos = pageY - this.hueSliderEl.getBoundingClientRect().top
         const bound_pos = Math.max(Math.min(corrected_pos, slider_height), 0)
-        this._set_cursor_pos(bound_pos)
         this.model.hue = this._pos_to_hue(bound_pos)
     }
 
     _hue_to_pos(hue: number): number{
         const slider_height = this.hueSliderEl.getBoundingClientRect().height
-        return slider_height - (hue % 360) * slider_height /360
+        return slider_height - (Math.round(hue) % 360) * slider_height /359
     }
 
     _pos_to_hue(pos: number): number{
         const slider_height = this.hueSliderEl.getBoundingClientRect().height
-        return 360*(slider_height-pos)/slider_height
+        return 359*(slider_height-pos)/slider_height //[0;359]
     }
 
     _process_drag_move(ev: MouseEvent): void {
@@ -281,9 +349,28 @@ export class HueSliderView {
     }
 }
 
+
+namespace HueSlider {
+  export interface Attrs extends Widget.Attrs {
+      hue: number
+  }
+
+  export interface Props extends Widget.Props {
+      hue: p.Property<number>
+  }
+}
+
+interface HueSlider extends HueSlider.Attrs {}
+
 class HueSlider extends Widget {
     hue: number
 
+    properties: HueSlider.Props
+
+    constructor(attrs?: Partial<HueSlider.Attrs>) {
+        super(attrs)
+    }
+  
     static initClass(): void {
         this.prototype.type = "HueSlider"
     
@@ -293,21 +380,6 @@ class HueSlider extends Widget {
     }
 }
 HueSlider.initClass()
-
-
-export class ColorPick extends Widget {
-    color: Color
-
-    static initClass(): void {
-        this.prototype.type = "ColorPick"
-        this.prototype.default_view = ColorPickView
-
-        this.define({
-            color: [p.Color, "#ff0000"], //red => h,s,l = 0, 100%, 100%
-        })
-    }
-}
-ColorPick.initClass()
 
 /***********************************
 Functions and types to works with convertion between hex hsl and rgb

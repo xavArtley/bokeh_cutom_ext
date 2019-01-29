@@ -6,7 +6,7 @@ from bokeh.layouts import row
 cds = ColumnDataSource(data=dict(x=(0, 1), y=(0, 1)))
 
 p = Figure(x_range=(0, 1), y_range=(0, 1))
-w = ColorInput(title="Line Color", color="red", width=100, height=50)
+w = ColorInput(title="Line Color", color="blue", width=100, height=50)
 line = p.line(x='x', y='y', source=cds, color=w.color)
 cb = CustomJS(args={'line': line}, code="""
 line.glyph.line_color = cb_obj.color

@@ -20,13 +20,13 @@
 }
 
 .bk-color-picker-ctn{
-    border: 2px solid black;
+    border: 1px solid lightgray;
     border-radius: 10px;
     background-color: gainsboro;
     display: flex;
     position: relative;
-    width: 290px;
-    padding: 7px;
+    width: fit-content;
+    padding: 9px;
 }
 
 .bk-gradient-pnl{/*used for saturation and Lightness values*/
